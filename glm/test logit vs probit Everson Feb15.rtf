@@ -1,0 +1,68 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf510
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww9500\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
+
+\f0\fs24 \cf0 # set a grid with 2 positive x values\
+n=1000\
+x=c(rep(2,500), rep(3,500))\
+\
+# compute P(Y=1) under probit model with beta = 1 (no intercept)\
+p0 = pnorm(x)\
+\
+nsim=10000\
+\
+llikprobit = lliklogit = devvec=rep(0,nsim)\
+\
+# generate y values under the probit model and compute maximized\
+# log-likelihood under probit and logistic models\
+for(i in 1:nsim)\{\
+ y = rbinom(n,1,p0)\
+# find MLE of beta under each model\
+ beta.probit = glm(y~x-1, family=binomial(link="probit"))$coef\
+ beta.logit = glm(y~x-1, family=binomial)$coef\
+# evaluate probabilities under each model using MLE beta values\
+ p.probit = pnorm(x*beta.probit)\
+ p.logit = 1/(1+exp(-x*beta.logit))\
+# store the maximized log-likelihood values\
+ llikprobit[i] = sum(y*log(p.probit) + (1-y)*log(1-p.probit)) \
+ lliklogit[i] = sum(y*log(p.logit) + (1-y)*log(1-p.logit))\
+# store the difference in maximized log-likelihood values \
+ devvec[i] = llikprobit[i] - lliklogit[i]\
+# print out i for every 500th iteration\
+ if(i/500 == round(i/500)) cat(i, ", ")\
+\}\
+\
+# remove NA's, which occur if yi = 0 for all xi < x0 and yi=1 for all xi > x0\
+# (you can't fit either model when the yi's separate like this - why not?)\
+devvec=devvec[!is.na(devvec)]\
+\
+# make a histogram of the diffferences\
+hist(devvec)\
+\
+# set up a vector to store p-values for data generated under the logistic model\
+pval=0*devvec\
+\
+# set P(Y=1) under the logistic model with beta=1\
+p1 = 1/(1+exp(-x))\
+\
+# generate y values under the logistic model and compute the (approximate) p-values\
+for(i in 1:length(devvec))\{\
+ y = rbinom(n,1,p1)\
+ beta.probit = glm(y~x-1, family=binomial(link="probit"))$coef\
+ beta.logit = glm(y~x-1, family=binomial)$coef\
+ p.probit = pnorm(x*beta.probit)\
+ p.logit = 1/(1+exp(-x*beta.logit))\
+# compute the difference in maximized log-likelihoods\
+ dev = sum(y*log(p.probit/p.logit) + (1-y)*log((1-p.probit)/(1-p.logit))) \
+# compute the proportion of simulated differences under the probit model that are as\
+# small (negative) or smaller than the computed value to get an approximate p-value:\
+ pval[i] = mean(devvec<= dev)\
+ if(i/500 == round(i/500)) cat(i, ", ")\
+\}\
+\
+hist(pval)\
+# compute the approximate power at alpha = 0.1\
+mean(pval<=0.1)\
+}
