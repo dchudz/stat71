@@ -1,0 +1,12 @@
+model{
+
+for (i in 1:n){
+Y[i]~dbern(q[i])
+q[i]<-phi(beta1*x[i])
+}
+
+beta1~dunif(-100000,100000)
+}
+
+
+

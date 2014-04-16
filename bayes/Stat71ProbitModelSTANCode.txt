@@ -1,0 +1,41 @@
+
+#setting up the problem
+
+n=1000
+beta<-1
+# set a grid of x and error values
+x=rnorm(n,0,1)
+error<-rnorm(n, 0, 1)
+# calculate Z
+z<-x*beta+error
+#set Y
+Y<-rep(0,n)
+for (i in 1:n){
+if(z[i]>0){
+Y[i]<-1}
+}
+
+
+#BUGS CODE FOR STAT 71
+library(rstan)
+set_cppo('debug')
+
+s71probit_code <- ' data {
+int<lower=0> n; // sample size
+int<lower=0,upper=1> Y[n]; // response variable
+real x[n]; // explanatory variable
+}
+parameters { 
+real beta1;
+}
+model{
+for (i in 1:n)
+Y[i] ~ bernoulli(Phi(beta1 * x[i]));
+}
+'
+
+
+s71probit_dat <- list (Y=Y, x=x,n=1000) 
+
+fitprobit <- stan(model_code = s71probit_code, data = s71probit_dat, 
+            iter = 1000, chains = 4)
