@@ -10,7 +10,7 @@ lfrobit = function(beta, nu, X,y){
  ltheta = pt(mu,nu, log=T)
  lmtheta = pt(mu,nu, log=T, lower = F)
  sum(y*ltheta + (1-y)*lmtheta)
- }
+}
 
 
 d1lfrobit = function(beta,nu,X,y){
