@@ -115,9 +115,7 @@ robit_MCMC <- function(nu){
                   muz<-X%*%Beta			# Update Mean of Z
                   #z[y==0]<-qnorm(runif(n,0,pnorm(0,muz,sqrt(1/lambda))),muz,sqrt(1/lambda))[y==0]
                   #z[y==1]<-qnorm(runif(n,pnorm(0,muz,sqrt(1/lambda)),1),muz,sqrt(1/lambda))[y==1]
-                  browser()
-                  z[y==0]<-muz-rcnorm(muz)
-                  z[y==1]<-muz+rcnorm(-muz)
+                  z <- ifelse(y==1, muz+rcnorm(-muz), muz-rcnorm(muz))
                   
                   #UPDATE BETA
                   vbeta<-solve(crossprod(X*sqrt(lambda)))
